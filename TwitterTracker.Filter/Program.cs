@@ -27,6 +27,10 @@ namespace TwitterTracker.Filter
                                 /* Args must use JSONPath here are some resources to get you started:
                                     1) http://www.newtonsoft.com/json/help/html/QueryJsonSelectTokenJsonPath.htm
                                     2) http://goessner.net/articles/JsonPath/
+
+                                    Examples:
+                                    Only pass tweets that have retweeted_status that is not null: "$..retweeted_status" 
+                                    Only pass tweets that have hashtags of value news: "$..hashtags[?(@.text=='news')]"
                                 */
                                 var val = tweet.SelectTokens(arg); 
 
