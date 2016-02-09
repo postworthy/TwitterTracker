@@ -26,11 +26,11 @@ namespace TwitterTracker.Core
             t.track = string.Join(",", t.track.Split(',').Select(x => x.Trim()));
             return t;
         }
-        public IEnumerable<Tweet> ResultStream()
+        public IEnumerable<Tweet> ResultStream(int maxResets = 5)
         {
             Tweet tweet = null;
             IEnumerator<Tweet> tweetEnumerator = null;
-            while (StreamResetAttempts <= 5)
+            while (StreamResetAttempts <= maxResets)
             {
                 try
                 {
@@ -48,7 +48,7 @@ namespace TwitterTracker.Core
                     if (log != null)
                         log.WriteLine("{0}: Error: {1}", DateTime.Now, ex.ToString());
 
-                    if (StreamResetAttempts > 5)
+                    if (StreamResetAttempts >= maxResets)
                         throw new Exception("Max Reset Attempts Reached!");
                     else
                     {
