@@ -70,7 +70,7 @@ namespace TwitterTracker.Core
             {
                 foreach (var x in uri.Query.TrimStart('?').Split('&'))
                 {
-                    requestParams.Add(x.Split('=')[0], x.Split('=')[1]);
+                    requestParams.Add(x.Split('=')[0], Uri.UnescapeDataString(x.Split('=')[1]));
                 }
             }
 

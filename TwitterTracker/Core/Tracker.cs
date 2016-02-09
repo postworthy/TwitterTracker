@@ -39,6 +39,9 @@ namespace TwitterTracker.Core
 
                     tweetEnumerator.MoveNext();
                     tweet = tweetEnumerator.Current;
+
+                    if (tweet == null)
+                        throw new Exception("Null Tweet");
                 }
                 catch (Exception ex)
                 {
@@ -65,7 +68,7 @@ namespace TwitterTracker.Core
 
         private IEnumerable<Status> ResultStream(string track)
         {
-            var request = OAuth.CreateSignedRequest(new Uri("https://stream.twitter.com/1.1/statuses/filter.json?delimited=length&track=" + track));
+            var request = OAuth.CreateSignedRequest(new Uri("https://stream.twitter.com/1.1/statuses/filter.json?delimited=length&track=" + Uri.EscapeDataString(track)));
             using (stream = request.GetResponse().GetResponseStream())
             using (var reader = new StreamReader(stream))
             {
