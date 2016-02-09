@@ -18,34 +18,19 @@ namespace TwitterTracker.Filter
                 {
                     if (args?.Length > 0)
                     {
-                        var status = JObject.Parse(input);
+                        var tweet = JObject.Parse(ASCIIEncoding.UTF8.GetString(Convert.FromBase64String(input)));
                         var fail = false;
                         foreach (var arg in args)
                         {
                             try
                             {
-                                var parts = arg.Split(new[] { "==", ">=", "<=", ">", "<" }, StringSplitOptions.RemoveEmptyEntries);
-                                var propertyPath = parts[0].Split('.');
-                                var value = parts[1];
-                                JToken propRef = status;
-                                foreach (var p in propertyPath)
-                                {
-                                    var x = p.Split('[');
-                                    if (x.Length == 1)
-                                        propRef = propRef[p];
-                                    else
-                                        propRef = ((JArray)propRef[x[0]]).ElementAt(int.Parse(x[1].TrimEnd(']')));
-                                }
+                                /* Args must use JSONPath here are some resources to get you started:
+                                    1) http://www.newtonsoft.com/json/help/html/QueryJsonSelectTokenJsonPath.htm
+                                    2) http://goessner.net/articles/JsonPath/
+                                */
+                                var val = tweet.SelectTokens(arg); 
 
-                                if (arg.Contains("==") && Convert.ToString(propRef) != value)
-                                    fail = true;
-                                else if (arg.Contains(">=") && Convert.ToDouble(propRef) < Convert.ToDouble(value))
-                                    fail = true;
-                                else if (arg.Contains("<=") && Convert.ToDouble(propRef) > Convert.ToDouble(value))
-                                    fail = true;
-                                else if (arg.Contains(">") && Convert.ToDouble(propRef) <= Convert.ToDouble(value))
-                                    fail = true;
-                                else if (arg.Contains("<") && Convert.ToDouble(propRef) >= Convert.ToDouble(value))
+                                if (val == null || val.Count() == 0)
                                     fail = true;
                             }
                             catch { fail = true; }

@@ -26,10 +26,10 @@ namespace TwitterTracker.Core
             t.track = string.Join(",", t.track.Split(',').Select(x => x.Trim()));
             return t;
         }
-        public IEnumerable<Tweet> ResultStream(int maxResets = 5)
+        public IEnumerable<Status> ResultStream(int maxResets = 5)
         {
-            Tweet tweet = null;
-            IEnumerator<Tweet> tweetEnumerator = null;
+            Status tweet = null;
+            IEnumerator<Status> tweetEnumerator = null;
             while (StreamResetAttempts <= maxResets)
             {
                 try
@@ -63,7 +63,7 @@ namespace TwitterTracker.Core
             }
         }
 
-        private IEnumerable<Tweet> ResultStream(string track)
+        private IEnumerable<Status> ResultStream(string track)
         {
             var request = OAuth.CreateSignedRequest(new Uri("https://stream.twitter.com/1.1/statuses/filter.json?delimited=length&track=" + track));
             using (stream = request.GetResponse().GetResponseStream())
@@ -77,10 +77,10 @@ namespace TwitterTracker.Core
                     {
                         var tweetData = new char[length];
                         reader.Read(tweetData, 0, length);
-                        Tweet tweet = null;
+                        Status tweet = null;
                         try
                         {
-                            tweet = JsonConvert.DeserializeObject<Tweet>(new string(tweetData));
+                            tweet = JsonConvert.DeserializeObject<Status>(new string(tweetData));
                         }
                         catch (Exception ex)
                         {

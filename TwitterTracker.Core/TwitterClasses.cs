@@ -265,7 +265,7 @@ namespace TwitterTracker.Core
         public string screen_name { get; set; }
     }
 
-    public class Tweet
+    public class Status
     {
         public string created_at { get; set; }
         public long? id { get; set; }
@@ -294,15 +294,16 @@ namespace TwitterTracker.Core
         public string filter_level { get; set; }
         public string lang { get; set; }
         public string timestamp_ms { get; set; }
+        public Status retweeted_status { get; set; }
 
         public override string ToString()
         {
             return Convert.ToBase64String(ASCIIEncoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(this)));
         }
 
-        public static Tweet FromBase64String(string base64)
+        public static Status FromBase64String(string base64)
         {
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<Tweet>(ASCIIEncoding.UTF8.GetString(Convert.FromBase64String(base64)));
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<Status>(ASCIIEncoding.UTF8.GetString(Convert.FromBase64String(base64)));
         }
     }
 

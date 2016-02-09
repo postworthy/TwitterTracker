@@ -16,7 +16,7 @@ namespace TwitterTracker.Extract.Urls
             {
                 try
                 {
-                    var status = Tweet.FromBase64String(input);
+                    var status = Status.FromBase64String(input);
                     status.entities.urls.ForEach(e => Console.WriteLine(e.expanded_url));
                 }
                 catch{
