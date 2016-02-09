@@ -13,80 +13,86 @@ namespace TwitterTracker.Core
 {
     public class Tracker
     {
-        private Task streamTask = null;
         private Stream stream = null;
         private TextWriter log = null;
-        private Action<Tweet> statusHandler = null;
         private Tracker() { }
-        private Tracker(Action<Tweet> statusHandler, TextWriter log) { this.statusHandler = statusHandler; this.log = log; this.StreamResetAttempts = 0; }
-        public bool IsActive { get { return stream != null && stream.CanRead; } }
-        public int StreamResetAttempts { get; set; }
-        public static Tracker New(Action<Tweet> statusHandler, string track = null, TextWriter log = null)
+        private Tracker(TextWriter log) { this.log = log; this.StreamResetAttempts = 0; }
+        private int StreamResetAttempts { get; set; }
+        private string track { get; set; }
+        public static Tracker New(string track = null, TextWriter log = null)
         {
-            var t = new Tracker(statusHandler, log);
-            t.Start(track);
+            var t = new Tracker(log);
+            t.track = track ?? ConfigurationManager.AppSettings["Track"];
+            t.track = string.Join(",", t.track.Split(',').Select(x => x.Trim()));
             return t;
         }
-        private void Start(string track = null)
+        public IEnumerable<Tweet> ResultStream()
         {
-            streamTask = Task.Run(() =>
+            Tweet tweet = null;
+            IEnumerator<Tweet> tweetEnumerator = null;
+            while (StreamResetAttempts <= 5)
             {
-                while (StreamResetAttempts <= 5)
+                try
                 {
-                    track = track ?? ConfigurationManager.AppSettings["Track"];
+                    if(tweetEnumerator == null)
+                        tweetEnumerator = ResultStream(track).GetEnumerator();
 
-                    try
-                    {
-                        var request = OAuth.CreateSignedRequest(new Uri("https://stream.twitter.com/1.1/statuses/filter.json?delimited=length&track=" + track));
-                        using (stream = request.GetResponse().GetResponseStream())
-                        using (var reader = new StreamReader(stream))
-                        {
-                            while (stream.CanRead && !reader.EndOfStream)
-                            {
-                                var length = 0;
-                                var data = reader.ReadLine();
-                                if(int.TryParse(data, out length))
-                                {
-                                    var tweetData = new char[length];
-                                    reader.Read(tweetData, 0, length);
-                                    
-                                    try
-                                    {
-                                        var tweet = JsonConvert.DeserializeObject<Tweet>(new string(tweetData));
-                                        if (tweet.id > 0)
-                                            statusHandler(tweet);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        if (log != null)
-                                            log.WriteLine("{0}: Error: {1}", DateTime.Now, ex.ToString());
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
+                    tweetEnumerator.MoveNext();
+                    tweet = tweetEnumerator.Current;
+                }
+                catch (Exception ex)
+                {
+                    if (tweetEnumerator != null)
+                        tweetEnumerator.Dispose();
+
+                    if (log != null)
+                        log.WriteLine("{0}: Error: {1}", DateTime.Now, ex.ToString());
+
+                    if (StreamResetAttempts > 5)
+                        throw new Exception("Max Reset Attempts Reached!");
+                    else
                     {
                         if (log != null)
-                            log.WriteLine("{0}: Error: {1}", DateTime.Now, ex.ToString());
+                            log.WriteLine("{0}: Sleeping for {1} seconds before next attempt.", DateTime.Now, StreamResetAttempts * 2);
 
-                        if (StreamResetAttempts > 5)
-                            throw new Exception("Max Reset Attempts Reached!");
-                        else
-                        {
-                            if (log != null)
-                                log.WriteLine("{0}: Sleeping for {1} seconds before next attempt.", DateTime.Now, StreamResetAttempts * 2);
-                            Thread.Sleep(2000 * StreamResetAttempts++);
-                            Start(track);
-                        }
+                        Thread.Sleep(2000 * StreamResetAttempts++);
                     }
                 }
-            });
+
+                yield return tweet;
+            }
         }
-        public void Wait()
+
+        private IEnumerable<Tweet> ResultStream(string track)
         {
-            if (streamTask != null)
-                streamTask.Wait();
+            var request = OAuth.CreateSignedRequest(new Uri("https://stream.twitter.com/1.1/statuses/filter.json?delimited=length&track=" + track));
+            using (stream = request.GetResponse().GetResponseStream())
+            using (var reader = new StreamReader(stream))
+            {
+                while (stream.CanRead && !reader.EndOfStream)
+                {
+                    var length = 0;
+                    var data = reader.ReadLine();
+                    if (int.TryParse(data, out length))
+                    {
+                        var tweetData = new char[length];
+                        reader.Read(tweetData, 0, length);
+                        Tweet tweet = null;
+                        try
+                        {
+                            tweet = JsonConvert.DeserializeObject<Tweet>(new string(tweetData));
+                        }
+                        catch (Exception ex)
+                        {
+                            if (log != null)
+                                log.WriteLine("{0}: Error: {1}", DateTime.Now, ex.ToString());
+                        }
+
+                        if (tweet != null && tweet.id > 0)
+                            yield return tweet;
+                    }
+                }
+            }
         }
     }
 }

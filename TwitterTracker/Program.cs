@@ -14,21 +14,17 @@ namespace TwitterTracker
             if (args.Length == 0)
             {
                 Console.WriteLine("What would you like to track (ex: Twitter,Google,Apple)");
-                args = new[] { Console.ReadLine() };
+                args = new[] { "-tv", Console.ReadLine() };
             }
             
-            //Console.WriteLine("Starting Tracker");
+            var tracker = Tracker.New(
+                args[1], 
+                args[0].Contains("v") ? Console.Out : null);
 
-            var tracker = Tracker.New((x) => {
-                Console.WriteLine(x);
-            },
-            track: args[0],
-            log: Console.Out);
-
-            while (!tracker.IsActive) ;
-            //Console.WriteLine("Tracker Active");
-            
-            tracker.Wait();
+            foreach(var tweet in tracker.ResultStream())
+            {
+                Console.WriteLine(tweet);
+            }
         }
     }
 }
