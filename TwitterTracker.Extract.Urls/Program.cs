@@ -17,7 +17,20 @@ namespace TwitterTracker.Extract.Urls
                 try
                 {
                     var status = Status.FromBase64String(input);
-                    status.entities.urls.ForEach(e => Console.WriteLine(e.expanded_url));
+                    if (status.entities.urls.Count > 0)
+                    {
+                        int retweets = status.retweet_count ?? 0;
+                        var ot = status.retweeted_status;
+                        while (ot != null)
+                        {
+                            if (ot.retweet_count > retweets)
+                                retweets = ot.retweet_count.Value;
+
+                            ot = ot.retweeted_status;
+                        }
+                        retweets = retweets / status.entities.urls.Count; //Split the RT love between them all
+                        status.entities.urls.ForEach(e => Console.WriteLine(retweets + "," + e.expanded_url));
+                    }
                 }
                 catch{
                     Console.WriteLine("Error Handling: " + input);

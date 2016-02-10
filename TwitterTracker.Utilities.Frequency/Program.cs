@@ -20,9 +20,11 @@ namespace TwitterTracker.Utilities.Frequency
                 Created = DateTime.Now;
             }
 
-            public void Seen()
+            public void Seen(int c = 0)
             {
                 Count++;
+                if (c > Count)
+                    Count = c;
                 LastSeen = DateTime.Now;
             }
 
@@ -39,8 +41,8 @@ namespace TwitterTracker.Utilities.Frequency
             }
         }
         static void Main(string[] args)
-        { 
-            
+        {
+
             int max = 0;
             if (args.Length == 1)
                 int.TryParse(args[0], out max);
@@ -54,16 +56,20 @@ namespace TwitterTracker.Utilities.Frequency
             var input = Console.ReadLine();
             while (!string.IsNullOrEmpty(input))
             {
-                if (input.StartsWith("http"))
+                var split = input.Split(',');
+                var count = 0;
+                var item = split[1];
+                var isItem = int.TryParse(split[0], out count) && item.StartsWith("http");
+                if (isItem)
                 {
-                    if (items.ContainsKey(input))
-                        items[input].Seen();
+                    if (items.ContainsKey(item))
+                        items[item].Seen(count);
                     else
                     {
                         if (items.Count >= max)
                             items.Remove(items.OrderByDescending(x => x.Value.Rank()).Last().Key);
 
-                        items.Add(input, new Item() { Value = input, Count = 1, LastSeen = DateTime.Now });
+                        items.Add(item, new Item() { Value = item, Count = Math.Max(count, 1), LastSeen = DateTime.Now });
 
                     }
                 }
@@ -86,15 +92,15 @@ namespace TwitterTracker.Utilities.Frequency
 
             var ordered = items
                 .OrderByDescending(x => x.Value.Rank())
-                .ThenByDescending(x=>x.Value.LastSeen)
-                .Take(75);
+                .ThenByDescending(x => x.Value.LastSeen)
+                .Take(50);
             foreach (var i in ordered)
             {
                 Console.WriteLine("{0}\t{1}\t{2}\t{3}", i.Value.Rank(), i.Value.Count, i.Value.LastSeen, i.Value.Value);
             }
 
             Console.WriteLine("");
-            Console.WriteLine("Last Updated: {0}",DateTime.Now);
+            Console.WriteLine("Last Updated: {0}", DateTime.Now);
             Console.WriteLine("");
             foreach (var e in errors)
             {
