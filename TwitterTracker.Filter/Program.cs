@@ -16,7 +16,7 @@ namespace TwitterTracker.Filter
             {
                 try
                 {
-                    if (args?.Length > 0)
+                    if (args != null && args.Length > 0)
                     {
                         var tweet = JObject.Parse(ASCIIEncoding.UTF8.GetString(Convert.FromBase64String(input)));
                         var fail = false;
