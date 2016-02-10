@@ -13,6 +13,11 @@ namespace TwitterTracker.Core
 {
     public class Tracker
     {
+        public enum StreamTypes
+        {
+            Tracker,
+            User
+        }
         private Stream stream = null;
         private TextWriter log = null;
         private Tracker() { }
@@ -26,7 +31,7 @@ namespace TwitterTracker.Core
             t.track = string.Join(",", t.track.Split(',').Select(x => x.Trim()));
             return t;
         }
-        public IEnumerable<Status> ResultStream(int maxResets = 5)
+        public IEnumerable<Status> ResultStream(StreamTypes type = StreamTypes.Tracker, int maxResets = 5)
         {
             Status tweet = null;
             IEnumerator<Status> tweetEnumerator = null;
@@ -35,7 +40,9 @@ namespace TwitterTracker.Core
                 try
                 {
                     if(tweetEnumerator == null)
-                        tweetEnumerator = ResultStream(track).GetEnumerator();
+                        tweetEnumerator = type == StreamTypes.Tracker ? 
+                            TrackerStream(track).GetEnumerator() : 
+                            UserStream().GetEnumerator();
 
                     tweetEnumerator.MoveNext();
                     tweet = tweetEnumerator.Current;
@@ -55,10 +62,11 @@ namespace TwitterTracker.Core
                         throw new Exception("Max Reset Attempts Reached!");
                     else
                     {
+                        StreamResetAttempts++;
                         if (log != null)
                             log.WriteLine("{0}: Sleeping for {1} seconds before next attempt.", DateTime.Now, StreamResetAttempts * 2);
 
-                        Thread.Sleep(2000 * StreamResetAttempts++);
+                        Thread.Sleep(2000 * StreamResetAttempts);
                     }
                 }
 
@@ -66,9 +74,41 @@ namespace TwitterTracker.Core
             }
         }
 
-        private IEnumerable<Status> ResultStream(string track)
+        private IEnumerable<Status> TrackerStream(string track)
         {
             var request = OAuth.CreateSignedRequest(new Uri("https://stream.twitter.com/1.1/statuses/filter.json?delimited=length&track=" + Uri.EscapeDataString(track)));
+            using (stream = request.GetResponse().GetResponseStream())
+            using (var reader = new StreamReader(stream))
+            {
+                while (stream.CanRead && !reader.EndOfStream)
+                {
+                    var length = 0;
+                    var data = reader.ReadLine();
+                    if (int.TryParse(data, out length))
+                    {
+                        var tweetData = new char[length];
+                        reader.Read(tweetData, 0, length);
+                        Status tweet = null;
+                        try
+                        {
+                            tweet = JsonConvert.DeserializeObject<Status>(new string(tweetData));
+                        }
+                        catch (Exception ex)
+                        {
+                            if (log != null)
+                                log.WriteLine("{0}: Error: {1}", DateTime.Now, ex.ToString());
+                        }
+
+                        if (tweet != null && tweet.id > 0)
+                            yield return tweet;
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<Status> UserStream()
+        {
+            var request = OAuth.CreateSignedRequest(new Uri("https://userstream.twitter.com/1.1/user.json?delimited=length&with=followings"));
             using (stream = request.GetResponse().GetResponseStream())
             using (var reader = new StreamReader(stream))
             {
