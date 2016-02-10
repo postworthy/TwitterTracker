@@ -1,0 +1,2 @@
+#!/bin/bash
+mono TwitterTracker/bin/Debug/TwitterTracker.exe -t \#news | mono TwitterTracker.Extract.Urls/bin/Debug/TwitterTracker.Extract.Urls.exe | mono TwitterTracker.Utilities.Frequency/bin/Debug/TwitterTracker.Utilities.Frequency.exe
