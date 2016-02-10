@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -42,10 +43,24 @@ namespace TwitterTracker.Utilities.Frequency
         }
         static void Main(string[] args)
         {
-
+            bool console = false;
             int max = 0;
-            if (args.Length == 1)
-                int.TryParse(args[0], out max);
+            if (args.Length > 0)
+            {
+                foreach (var arg in args)
+                {
+                    if (int.TryParse(arg, out max))
+                        break;
+                }
+                foreach (var arg in args)
+                {
+                    if (arg == "-console")
+                    {
+                        console = true;
+                        break;
+                    }
+                }
+            }
 
             if (max == 0)
                 max = 1000;
@@ -54,6 +69,7 @@ namespace TwitterTracker.Utilities.Frequency
             var errors = new List<string>();
 
             var input = Console.ReadLine();
+            var lastOutput = DateTime.MinValue;
             while (!string.IsNullOrEmpty(input))
             {
                 var split = input.Split(',');
@@ -76,7 +92,20 @@ namespace TwitterTracker.Utilities.Frequency
                 else
                     errors.Add(input);
 
-                UpdateConsole(items, errors);
+                if (console)
+                    UpdateConsole(items, errors);
+                else if (items.Count >= 25 && (DateTime.Now - lastOutput).TotalSeconds > 60 * 5)
+                {
+                    lastOutput = DateTime.Now;
+                    Console.WriteLine(
+                        Convert.ToBase64String(
+                            ASCIIEncoding.UTF8.GetBytes(
+                                JsonConvert.SerializeObject(
+                                    new {
+                                        OutputTime = lastOutput,
+                                        Items = items.Take(100)
+                                    }))));
+                }
 
                 input = Console.ReadLine();
             }
