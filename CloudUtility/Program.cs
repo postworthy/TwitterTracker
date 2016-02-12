@@ -32,31 +32,80 @@ namespace CloudUtility
             if (!container.Exists())
                 container.Create();
 
-            var input = Console.ReadLine();
-            string key = null;
-            while (!string.IsNullOrEmpty(input))
+            var valid = new[] { "-u", "-d", "-r" };
+
+            while (args.Length != 1 && !valid.Any(x => x == args[0]))
             {
-                string json = null;
-                try
+                Console.WriteLine("What would you like to do with input (ex: (-u)pload, (-d)ownload, (-r)emove)");
+                args = new[] {
+                        Console.ReadLine().ToLower()
+                    };
+
+            }
+
+            if (args[0] == "-u") //Handle Uploads
+            {
+                var input = Console.ReadLine();
+                string key = null;
+                while (!string.IsNullOrEmpty(input))
                 {
-                    json = ASCIIEncoding.UTF8.GetString(Convert.FromBase64String(input));
+                    string json = null;
+                    try
+                    {
+                        json = ASCIIEncoding.UTF8.GetString(Convert.FromBase64String(input));
 
-                    if (string.IsNullOrEmpty(key))
-                        key = Math.Abs(json.GetHashCode()).ToString();
+                        if (string.IsNullOrEmpty(key))
+                            key = Math.Abs(json.GetHashCode()).ToString();
 
-                    UploadBlob(container.GetBlockBlobReference(key), json);
+                        UploadBlob(container.GetBlockBlobReference(key), json);
 
-                    key = null;
-                }
-                catch
-                {
-                    if (string.IsNullOrEmpty(json))
-                        key = input;
-                    else
                         key = null;
-                }
+                    }
+                    catch
+                    {
+                        if (string.IsNullOrEmpty(json))
+                            key = input;
+                        else
+                            key = null;
+                    }
 
-                input = Console.ReadLine();
+                    input = Console.ReadLine();
+                }
+            }
+            else if (args[0] == "-d") //Handle Downloads
+            {
+                var input = Console.ReadLine();
+                while (!string.IsNullOrEmpty(input))
+                {
+                    try
+                    {
+                        Console.WriteLine(DownloadBlob(container.GetBlockBlobReference(input)));
+                    }
+                    catch
+                    {
+                        Console.WriteLine("Failed to download {0}", input);
+                    }
+
+                    input = Console.ReadLine();
+                }
+            }
+            else if (args[0] == "-r") //Handle Removes
+            {
+                var input = Console.ReadLine();
+                while (!string.IsNullOrEmpty(input))
+                {
+                    try
+                    {
+                        container.GetBlockBlobReference(input).Delete();
+                        Console.WriteLine("Deleted {0}", input);
+                    }
+                    catch
+                    {
+                        Console.WriteLine("Failed to delete {0}", input);
+                    }
+
+                    input = Console.ReadLine();
+                }
             }
         }
 
@@ -75,6 +124,36 @@ namespace CloudUtility
                     {
                         blob.UploadFromStream(streamOut);
                     }
+                }
+            }
+        }
+
+        private static string DownloadBlob(CloudBlockBlob blob)
+        {
+            using (var stream = new MemoryStream())
+            {
+                StreamReader reader;
+                try
+                {
+                    blob.DownloadToStream(stream, options: new BlobRequestOptions()
+                    {
+                        RetryPolicy = new LinearRetry(TimeSpan.FromSeconds(5), 3)
+                    });
+                }
+                catch (StorageException se)
+                {
+                    return null;
+                }
+                try
+                {
+                    stream.Seek(0, 0);
+                    reader = new StreamReader(new GZipStream(stream, CompressionMode.Decompress));
+                    var json = reader.ReadToEnd();
+                    return json;
+                }
+                catch
+                {
+                    return null;
                 }
             }
         }
