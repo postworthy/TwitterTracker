@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitterTracker.Filter", "Tw
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitterTracker.Core", "TwitterTracker.Core\TwitterTracker.Core.csproj", "{D8777A69-0AC7-47E2-A8BC-7CEED4C822F9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudUtility", "CloudUtility\CloudUtility.csproj", "{4D640B8F-FF6E-45B5-94FA-99CCBAC8A7B2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{D8777A69-0AC7-47E2-A8BC-7CEED4C822F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8777A69-0AC7-47E2-A8BC-7CEED4C822F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8777A69-0AC7-47E2-A8BC-7CEED4C822F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D640B8F-FF6E-45B5-94FA-99CCBAC8A7B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D640B8F-FF6E-45B5-94FA-99CCBAC8A7B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D640B8F-FF6E-45B5-94FA-99CCBAC8A7B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D640B8F-FF6E-45B5-94FA-99CCBAC8A7B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
