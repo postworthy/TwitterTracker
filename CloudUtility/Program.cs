@@ -54,8 +54,9 @@ namespace CloudUtility
                     {
                         json = ASCIIEncoding.UTF8.GetString(Convert.FromBase64String(input));
 
+						//In the event that we do not have a key then assign the container key as the item name
                         if (string.IsNullOrEmpty(key))
-                            key = Math.Abs(json.GetHashCode()).ToString();
+                            key = containerKey;
 
                         UploadBlob(container.GetBlockBlobReference(key), json);
 
@@ -63,6 +64,7 @@ namespace CloudUtility
                     }
                     catch
                     {
+						//If you can't base64 decode the string then assume it is the key
                         if (string.IsNullOrEmpty(json))
                             key = input;
                         else
@@ -140,7 +142,7 @@ namespace CloudUtility
                         RetryPolicy = new LinearRetry(TimeSpan.FromSeconds(5), 3)
                     });
                 }
-                catch (StorageException se)
+                catch
                 {
                     return null;
                 }
