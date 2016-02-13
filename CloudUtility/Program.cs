@@ -54,7 +54,7 @@ namespace CloudUtility
 
             }
 
-            if (args[0] == "-u") //Handle Uploads
+			if (args[0].Contains("u")) //Handle Uploads
             {
                 var input = Console.ReadLine();
                 string key = null;
@@ -85,7 +85,7 @@ namespace CloudUtility
                     input = Console.ReadLine();
                 }
             }
-            else if (args[0] == "-d") //Handle Downloads
+			else if (args[0].Contains("d")) //Handle Downloads
             {
                 var input = Console.ReadLine();
                 while (!string.IsNullOrEmpty(input))
@@ -102,7 +102,7 @@ namespace CloudUtility
                     input = Console.ReadLine();
                 }
             }
-            else if (args[0] == "-r") //Handle Removes
+			else if (args[0].Contains("r")) //Handle Removes
             {
                 var input = Console.ReadLine();
                 while (!string.IsNullOrEmpty(input))
