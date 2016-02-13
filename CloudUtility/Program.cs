@@ -18,8 +18,10 @@ namespace CloudUtility
         static void Main(string[] args)
         {
             var containerKey = ConfigurationManager.AppSettings["AzureStorageContainerKey"];
-            if (string.IsNullOrEmpty(containerKey))
-                throw new Exception("Config Section 'appSettings' missing AzureStorageContainerKey value!");
+			if (string.IsNullOrEmpty (containerKey))
+				throw new Exception ("Config Section 'appSettings' missing AzureStorageContainerKey value!");
+			else
+				containerKey = containerKey.ToLower ();
 
             var connectionString = ConfigurationManager.AppSettings["AzureStorageConnectionString"];
             if (string.IsNullOrEmpty(connectionString))
