@@ -17,6 +17,15 @@ namespace CloudUtility
 
         static void Main(string[] args)
         {
+			//Bypass Cert Validation
+			if (args[0].Contains("x"))
+			{
+				System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) =>
+				{
+					return true;
+				};
+			}
+
             var containerKey = ConfigurationManager.AppSettings["AzureStorageContainerKey"];
 			if (string.IsNullOrEmpty (containerKey))
 				throw new Exception ("Config Section 'appSettings' missing AzureStorageContainerKey value!");
@@ -34,7 +43,7 @@ namespace CloudUtility
             if (!container.Exists())
                 container.Create();
 
-            var valid = new[] { "-u", "-d", "-r" };
+			var valid = new[] { "-u", "-d", "-r", "-ux", "-dx", "-rx", "-xu", "-xd", "-xr", };
 
             while (args.Length != 1 && !valid.Any(x => x == args[0]))
             {
