@@ -70,9 +70,15 @@ namespace TwitterTracker.Utilities.Frequency
                         Convert.ToBase64String(
                             ASCIIEncoding.UTF8.GetBytes(
                                 JsonConvert.SerializeObject(
-                                    new FrequencyOutput {
+                                    new FrequencyOutput
+                                    {
                                         OutputTime = lastOutput,
-                                        Items = items.OrderByDescending(x => x.Value.Rank()).Select(x => x.Value).Take(100).ToArray()
+                                        Items = items
+                                            .OrderByDescending(x => x.Value.Rank())
+                                            .ThenByDescending(x => x.Value.LastSeen)
+                                            .Select(x => x.Value)
+                                            .Take(100)
+                                            .ToArray()
                                     }))));
                 }
 
