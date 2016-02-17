@@ -4,43 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TwitterTracker.Core;
 
 namespace TwitterTracker.Utilities.Frequency
 {
     class Program
     {
-        private class Item
-        {
-            public string Value { get; set; }
-            public int Count { get; set; }
-            public DateTime LastSeen { get; set; }
-            public DateTime Created { get; set; }
-
-            public Item()
-            {
-                Created = DateTime.Now;
-            }
-
-            public void Seen(int c = 0)
-            {
-                Count++;
-                if (c > Count)
-                    Count = c;
-                LastSeen = DateTime.Now;
-            }
-
-            public double Rank()
-            {
-                var score = Count;
-                var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                var twitterStartDate = Convert.ToInt64((new DateTime(2006, 7, 15, 0, 0, 0, DateTimeKind.Utc) - epoch).TotalSeconds);
-                var createDate = Convert.ToInt64((Created.ToUniversalTime() - epoch).TotalSeconds);
-                var seconds = createDate - twitterStartDate;
-                var order = Math.Log10(Math.Max(Math.Abs(score), 1));
-                var sign = (score > 0) ? 1 : 0;
-                return Math.Round(order + ((sign * seconds) / 45000.0), 7);
-            }
-        }
         static void Main(string[] args)
         {
             bool console = false;
@@ -65,7 +34,7 @@ namespace TwitterTracker.Utilities.Frequency
             if (max == 0)
                 max = 1000;
 
-            var items = new Dictionary<string, Item>(max);
+            var items = new Dictionary<string, FrequencyItem>(max);
             var errors = new List<string>();
 
             var input = Console.ReadLine();
@@ -85,7 +54,7 @@ namespace TwitterTracker.Utilities.Frequency
                         if (items.Count >= max)
                             items.Remove(items.OrderByDescending(x => x.Value.Rank()).Last().Key);
 
-                        items.Add(item, new Item() { Value = item, Count = Math.Max(count, 1), LastSeen = DateTime.Now });
+                        items.Add(item, new FrequencyItem() { Value = item, Count = Math.Max(count, 1), LastSeen = DateTime.Now });
 
                     }
                 }
@@ -101,9 +70,9 @@ namespace TwitterTracker.Utilities.Frequency
                         Convert.ToBase64String(
                             ASCIIEncoding.UTF8.GetBytes(
                                 JsonConvert.SerializeObject(
-                                    new {
+                                    new FrequencyOutput {
                                         OutputTime = lastOutput,
-                                        Items = items.Take(100)
+                                        Items = items.OrderByDescending(x => x.Value.Rank()).Select(x => x.Value).Take(100).ToArray()
                                     }))));
                 }
 
@@ -111,7 +80,7 @@ namespace TwitterTracker.Utilities.Frequency
             }
         }
 
-        private static void UpdateConsole(Dictionary<string, Item> items, List<string> errors)
+        private static void UpdateConsole(Dictionary<string, FrequencyItem> items, List<string> errors)
         {
             if (!Console.IsOutputRedirected)
                 Console.Clear();
