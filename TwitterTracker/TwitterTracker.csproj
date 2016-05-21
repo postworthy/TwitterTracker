@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\OAuth.cs" />
+    <Compile Include="Core\StatusExtensions.cs" />
     <Compile Include="Core\Tracker.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -31,9 +31,7 @@ namespace TwitterTracker
                     return true;
                 };
             }
-
             
-
             var tracker = Tracker.New(
                 args[1],
                 args[0].Contains("v") ? Console.Out : null);
