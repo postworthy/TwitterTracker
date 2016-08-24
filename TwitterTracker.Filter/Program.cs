@@ -18,7 +18,7 @@ namespace TwitterTracker.Filter
                 {
                     if (args != null && args.Length > 0)
                     {
-                        var tweet = JObject.Parse(ASCIIEncoding.UTF8.GetString(Convert.FromBase64String(input)));
+                        var tweet = JObject.Parse("{root: [" + ASCIIEncoding.UTF8.GetString(Convert.FromBase64String(input)) + "]}");
                         var fail = false;
                         foreach (var arg in args)
                         {
@@ -31,6 +31,7 @@ namespace TwitterTracker.Filter
                                     Examples:
                                     Only pass tweets that have retweeted_status that is not null: "$..retweeted_status" 
                                     Only pass tweets that have hashtags of value news: "$..hashtags[?(@.text=='news')]"
+                                    Only pass tweets that have a user above a selected followers_count" "$.root[?(@.user.followers_count>400)]"
                                 */
                                 var val = tweet.SelectTokens(arg); 
 
