@@ -31,10 +31,13 @@ namespace TwitterTracker
                     return true;
                 };
             }
-            
-            var tracker = Tracker.New(
-                args[1],
-                args[0].Contains("v") ? Console.Out : null);
+
+            Tracker tracker = null;
+
+            if (args.Length == 2)
+                tracker = Tracker.New(args[1], args[0].Contains("v") ? Console.Out : null);
+            else
+                tracker = Tracker.New(args[0], args[0].Contains("v") ? Console.Out : null);
 
             var locker = new object();
 
