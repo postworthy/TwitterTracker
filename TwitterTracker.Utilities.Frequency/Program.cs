@@ -77,7 +77,6 @@ namespace TwitterTracker.Utilities.Frequency
                                             .OrderByDescending(x => x.Value.Rank())
                                             .ThenByDescending(x => x.Value.LastSeen)
                                             .Select(x => x.Value)
-                                            .Take(100)
                                             .ToArray()
                                     }))));
                 }
