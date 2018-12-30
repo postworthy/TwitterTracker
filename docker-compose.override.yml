@@ -1,0 +1,9 @@
+version: '3.4'
+
+services:
+  app:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+volumes:
+  sharedfiles: {}

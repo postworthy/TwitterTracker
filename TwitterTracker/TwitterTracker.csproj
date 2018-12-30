@@ -1,12 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net45</TargetFrameworks>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <Version>1.0.0.0</Version>
     <Company>Landon Key</Company>
     <Copyright>Copyright ©  2014</Copyright>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <ApplicationIcon />
+    <OutputType>Exe</OutputType>
+    <StartupObject />
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="appsettings.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="appsettings.json" />
+  </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
@@ -19,8 +28,8 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System.Configuration">
-      <HintPath>..\..\..\..\..\..\Windows\assembly\GAC_MSIL\System.Configuration\2.0.0.0__b03f5f7f11d50a3a\System.configuration.dll</HintPath>
-    </Reference>
+    <None Update="private.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
