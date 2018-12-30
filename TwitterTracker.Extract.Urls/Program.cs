@@ -34,7 +34,7 @@ namespace TwitterTracker.Extract.Urls
                             ot = ot.retweeted_status;
                         }
 						retweets = retweets / urls.Count; //Split the RT love between them all
-						urls.ForEach(x => Console.WriteLine(retweets + "," + x));
+						urls.ForEach(x => Console.WriteLine(x + "#retweets=" + retweets));
                     }
                 }
                 catch{

@@ -15,7 +15,7 @@ namespace CloudUtility
     class Program
     {
 
-        static void Main(string[] args)
+        static async void Main(string[] args)
         {
 			//Bypass Cert Validation
 			if (args[0].Contains("x"))
@@ -40,8 +40,8 @@ namespace CloudUtility
             var blobClient = storageAccount.CreateCloudBlobClient();
             var container = blobClient.GetContainerReference(containerKey);
 
-            if (!container.Exists())
-                container.Create();
+            if (!(await container.ExistsAsync()))
+                await container.CreateAsync();
 
 			var valid = new[] { "-u", "-d", "-r", "-ux", "-dx", "-rx", "-xu", "-xd", "-xr", };
 
@@ -69,7 +69,7 @@ namespace CloudUtility
                         if (string.IsNullOrEmpty(key))
                             key = containerKey;
 
-                        UploadBlob(container.GetBlockBlobReference(key), json);
+                        await UploadBlob(container.GetBlockBlobReference(key), json);
 
                         key = null;
                     }
@@ -92,7 +92,7 @@ namespace CloudUtility
                 {
                     try
                     {
-                        Console.WriteLine(DownloadBlob(container.GetBlockBlobReference(input)));
+                        Console.WriteLine(await DownloadBlob(container.GetBlockBlobReference(input)));
                     }
                     catch
                     {
@@ -109,7 +109,7 @@ namespace CloudUtility
                 {
                     try
                     {
-                        container.GetBlockBlobReference(input).Delete();
+                        await container.GetBlockBlobReference(input).DeleteAsync();
                         Console.WriteLine("Deleted {0}", input);
                     }
                     catch
@@ -122,7 +122,7 @@ namespace CloudUtility
             }
         }
 
-        private static void UploadBlob(CloudBlockBlob blob, string obj)
+        private static async Task UploadBlob(CloudBlockBlob blob, string obj)
         {
             using (var streamCompressed = new MemoryStream())
             {
@@ -135,23 +135,20 @@ namespace CloudUtility
 
                     using (var streamOut = new MemoryStream(streamCompressed.ToArray()))
                     {
-                        blob.UploadFromStream(streamOut);
+                        await blob.UploadFromStreamAsync(streamOut);
                     }
                 }
             }
         }
 
-        private static string DownloadBlob(CloudBlockBlob blob)
+        private static async Task<string> DownloadBlob(CloudBlockBlob blob)
         {
             using (var stream = new MemoryStream())
             {
                 StreamReader reader;
                 try
                 {
-                    blob.DownloadToStream(stream, options: new BlobRequestOptions()
-                    {
-                        RetryPolicy = new LinearRetry(TimeSpan.FromSeconds(5), 3)
-                    });
+                    await blob.DownloadToStreamAsync(stream);
                 }
                 catch
                 {

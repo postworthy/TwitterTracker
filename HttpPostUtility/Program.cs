@@ -26,14 +26,18 @@ namespace HttpPostUtility
                         {
                             using (WebClient client = new WebClient())
                             {
+                                client.Headers["Content-Type"] = "application/json";
                                 byte[] response =
-                                client.UploadValues(destination, new NameValueCollection()
-                                {
-                                    { postParameterName, input }
-                                });
+                                client.UploadData(
+                                    destination, 
+                                    "POST",
+                                    Encoding.Default.GetBytes("{\"" + postParameterName + "\":\"" + input + "\"}"));
                             }
                         }
-                        catch { }
+                        catch(Exception ex)
+                        {
+                            ex = ex;
+                        }
                     });
                     input = Console.ReadLine();
                 }

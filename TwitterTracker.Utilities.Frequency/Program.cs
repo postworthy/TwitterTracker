@@ -41,7 +41,9 @@ namespace TwitterTracker.Utilities.Frequency
             var lastOutput = DateTime.MinValue;
             while (!string.IsNullOrEmpty(input))
             {
-                var split = input.Split(',');
+                var split = input.Contains("#retweets=") ? 
+                    input.Split(new[] { "#retweets=" }, StringSplitOptions.RemoveEmptyEntries).Reverse().ToArray() : 
+                    input.Split(',');
                 var count = 0;
                 var item = split[1];
                 var isItem = int.TryParse(split[0], out count) && item.StartsWith("http");
