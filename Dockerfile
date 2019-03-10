@@ -1,14 +1,5 @@
 FROM microsoft/dotnet:2.1-aspnetcore-runtime AS base
 WORKDIR /app
-EXPOSE 8080
-
-ENV ROOT_PASSWORD Password1
-RUN apt-get update
-RUN apt-get install -y openssh-server
-RUN sed -i s/#PermitRootLogin.*/PermitRootLogin\ yes/ /etc/ssh/sshd_config
-RUN echo "root:${ROOT_PASSWORD}" | chpasswd
-RUN ssh-keygen -A
-RUN mkdir /run/sshd
 
 #RUN echo "#!/bin/bash\ndotnet TwitterTracker.dll -tx \#news | dotnet TwitterTracker.Extract.Urls.dll | dotnet TwitterTracker.Utilities.Frequency.dll" > /app/docker-run.sh
 RUN echo "#!/bin/bash\ndotnet TwitterTracker.dll -tx \#news | dotnet TwitterTracker.Extract.Urls.dll" > /app/docker-run.sh
@@ -37,7 +28,9 @@ RUN dotnet publish TwitterTracker/TwitterTracker.csproj -c Release -o /app
 RUN dotnet publish TwitterTracker.Extract.Urls/TwitterTracker.Extract.Urls.csproj -c Release -o /app
 RUN dotnet publish TwitterTracker.Utilities.Frequency/TwitterTracker.Utilities.Frequency.csproj -c Release -o /app
 
+RUN rm /app/private.config
+
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-ENTRYPOINT ["/bin/bash", "/app/docker-run.sh"]
+ENTRYPOINT ["/bin/bash"]

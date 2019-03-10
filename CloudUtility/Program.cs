@@ -15,111 +15,114 @@ namespace CloudUtility
     class Program
     {
 
-        static async void Main(string[] args)
+        static void Main(string[] args)
         {
-			//Bypass Cert Validation
-			if (args[0].Contains("x"))
-			{
-				System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) =>
-				{
-					return true;
-				};
-			}
-
-            var containerKey = ConfigurationManager.AppSettings["AzureStorageContainerKey"];
-			if (string.IsNullOrEmpty (containerKey))
-				throw new Exception ("Config Section 'appSettings' missing AzureStorageContainerKey value!");
-			else
-				containerKey = containerKey.ToLower ();
-
-            var connectionString = ConfigurationManager.AppSettings["AzureStorageConnectionString"];
-            if (string.IsNullOrEmpty(connectionString))
-                throw new Exception("Config Section 'appSettings' missing AzureStorageConnectionString value!");
-
-            var storageAccount = CloudStorageAccount.Parse(connectionString);
-            var blobClient = storageAccount.CreateCloudBlobClient();
-            var container = blobClient.GetContainerReference(containerKey);
-
-            if (!(await container.ExistsAsync()))
-                await container.CreateAsync();
-
-			var valid = new[] { "-u", "-d", "-r", "-ux", "-dx", "-rx", "-xu", "-xd", "-xr", };
-
-            while (args.Length != 1 && !valid.Any(x => x == args[0]))
+            Task.Factory.StartNew(async () =>
             {
-                Console.WriteLine("What would you like to do with input (ex: (-u)pload, (-d)ownload, (-r)emove)");
-                args = new[] {
+                //Bypass Cert Validation
+                if (args[0].Contains("x"))
+                {
+                    System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) =>
+                    {
+                        return true;
+                    };
+                }
+
+                var containerKey = Environment.GetEnvironmentVariable("AzureStorageContainerKey") ?? ConfigurationManager.AppSettings["AzureStorageContainerKey"];
+                if (string.IsNullOrEmpty(containerKey))
+                    throw new Exception("Missing AzureStorageContainerKey value!");
+                else
+                    containerKey = containerKey.ToLower();
+
+                var connectionString = Environment.GetEnvironmentVariable("AzureStorageConnectionString") ?? ConfigurationManager.AppSettings["AzureStorageConnectionString"];
+                if (string.IsNullOrEmpty(connectionString))
+                    throw new Exception("Missing AzureStorageConnectionString value!");
+
+                var storageAccount = CloudStorageAccount.Parse(connectionString);
+                var blobClient = storageAccount.CreateCloudBlobClient();
+                var container = blobClient.GetContainerReference(containerKey);
+
+                if (!(await container.ExistsAsync()))
+                    await container.CreateAsync();
+
+                var valid = new[] { "-u", "-d", "-r", "-ux", "-dx", "-rx", "-xu", "-xd", "-xr", };
+
+                while (args.Length != 1 && !valid.Any(x => x == args[0]))
+                {
+                    Console.WriteLine("What would you like to do with input (ex: (-u)pload, (-d)ownload, (-r)emove)");
+                    args = new[] {
                         Console.ReadLine().ToLower()
                     };
 
-            }
+                }
 
-			if (args[0].Contains("u")) //Handle Uploads
-            {
-                var input = Console.ReadLine();
-                string key = null;
-                while (!string.IsNullOrEmpty(input))
+                if (args[0].Contains("u")) //Handle Uploads
                 {
-                    string json = null;
-                    try
+                    var input = Console.ReadLine();
+                    string key = null;
+                    while (!string.IsNullOrEmpty(input))
                     {
-                        json = ASCIIEncoding.UTF8.GetString(Convert.FromBase64String(input));
+                        string json = null;
+                        try
+                        {
+                            json = ASCIIEncoding.UTF8.GetString(Convert.FromBase64String(input));
 
-						//In the event that we do not have a key then assign the container key as the item name
-                        if (string.IsNullOrEmpty(key))
-                            key = containerKey;
+                            //In the event that we do not have a key then assign the container key as the item name
+                            if (string.IsNullOrEmpty(key))
+                                key = containerKey;
 
-                        await UploadBlob(container.GetBlockBlobReference(key), json);
+                            await UploadBlob(container.GetBlockBlobReference(key), json);
 
-                        key = null;
-                    }
-                    catch
-                    {
-						//If you can't base64 decode the string then assume it is the key
-                        if (string.IsNullOrEmpty(json))
-                            key = input;
-                        else
                             key = null;
-                    }
+                        }
+                        catch
+                        {
+                            //If you can't base64 decode the string then assume it is the key
+                            if (string.IsNullOrEmpty(json))
+                                key = input;
+                            else
+                                key = null;
+                        }
 
-                    input = Console.ReadLine();
+                        input = Console.ReadLine();
+                    }
                 }
-            }
-			else if (args[0].Contains("d")) //Handle Downloads
-            {
-                var input = Console.ReadLine();
-                while (!string.IsNullOrEmpty(input))
+                else if (args[0].Contains("d")) //Handle Downloads
                 {
-                    try
+                    var input = Console.ReadLine();
+                    while (!string.IsNullOrEmpty(input))
                     {
-                        Console.WriteLine(await DownloadBlob(container.GetBlockBlobReference(input)));
-                    }
-                    catch
-                    {
-                        Console.WriteLine("Failed to download {0}", input);
-                    }
+                        try
+                        {
+                            Console.WriteLine(await DownloadBlob(container.GetBlockBlobReference(input)));
+                        }
+                        catch
+                        {
+                            Console.WriteLine("Failed to download {0}", input);
+                        }
 
-                    input = Console.ReadLine();
+                        input = Console.ReadLine();
+                    }
                 }
-            }
-			else if (args[0].Contains("r")) //Handle Removes
-            {
-                var input = Console.ReadLine();
-                while (!string.IsNullOrEmpty(input))
+                else if (args[0].Contains("r")) //Handle Removes
                 {
-                    try
+                    var input = Console.ReadLine();
+                    while (!string.IsNullOrEmpty(input))
                     {
-                        await container.GetBlockBlobReference(input).DeleteAsync();
-                        Console.WriteLine("Deleted {0}", input);
-                    }
-                    catch
-                    {
-                        Console.WriteLine("Failed to delete {0}", input);
-                    }
+                        try
+                        {
+                            await container.GetBlockBlobReference(input).DeleteAsync();
+                            Console.WriteLine("Deleted {0}", input);
+                        }
+                        catch
+                        {
+                            Console.WriteLine("Failed to delete {0}", input);
+                        }
 
-                    input = Console.ReadLine();
+                        input = Console.ReadLine();
+                    }
                 }
-            }
+            }).Wait();
         }
 
         private static async Task UploadBlob(CloudBlockBlob blob, string obj)

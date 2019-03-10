@@ -74,16 +74,24 @@ namespace TwitterTracker.Core
                 }
             }
 
+            var ck = Environment.GetEnvironmentVariable("ConsumerKey") ?? ConfigurationManager.AppSettings["ConsumerKey"];
+            var cs = Environment.GetEnvironmentVariable("ConsumerSecret") ?? ConfigurationManager.AppSettings["ConsumerSecret"];
+            var oat = Environment.GetEnvironmentVariable("OAuthToken") ?? ConfigurationManager.AppSettings["OAuthToken"];
+            var oats = Environment.GetEnvironmentVariable("OAuthTokenSecret") ?? ConfigurationManager.AppSettings["OAuthTokenSecret"];
+
+            if (string.IsNullOrEmpty(ck) || string.IsNullOrEmpty(cs) || string.IsNullOrEmpty(oat) || string.IsNullOrEmpty(oats))
+                throw new ArgumentNullException("You must provide the following values through a private.config or enironment variables: ConsumerKey, ConsumerSecret, OAuthToken, OAuthTokenSecret");
+
             var hwr = (HttpWebRequest)WebRequest.Create(uri);
             hwr.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
             hwr.Headers.Add("Authorization",
                 CreateAuthorizationHeaderParameter(
                     uri.OriginalString.Split('?')[0],
                     requestParams,
-                    ConfigurationManager.AppSettings["ConsumerKey"],
-                    ConfigurationManager.AppSettings["ConsumerSecret"],
-                    ConfigurationManager.AppSettings["OAuthToken"],
-                    ConfigurationManager.AppSettings["OAuthTokenSecret"],
+                    ck,
+                    cs,
+                    oat,
+                    oats,
                     method));
             hwr.Method = method;
             hwr.Timeout = 3 * 60 * 1000;
