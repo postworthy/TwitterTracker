@@ -5,7 +5,7 @@
     <Version>1.0.0.0</Version>
     <Company>Landon Key</Company>
     <Copyright>Copyright ©  2014</Copyright>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>

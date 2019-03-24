@@ -2,10 +2,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <Version>1.0.0.0</Version>
+    <Version>1.0.0.2</Version>
     <Company>Landon Key</Company>
     <Copyright>Copyright ©  2014</Copyright>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <ApplicationIcon />
     <OutputType>Exe</OutputType>
     <StartupObject />
@@ -23,7 +23,10 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TwitterTracker.Core\TwitterTracker.Core.csproj" />
+    <PackageReference Include="NuGet.VisualStudio" Version="4.9.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TwitterTracker.Core\TwitterTracker.Core.csproj" Pack="true" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
     <PackageReference Include="System.Configuration.ConfigurationManager">

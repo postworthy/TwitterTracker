@@ -1,17 +1,23 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace TwitterTracker.Filter
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
-            var input = Console.ReadLine();
+            Run(args, Console.In, Console.Out);
+        }
+
+        public static void Run(string[] args, TextReader inputStream, TextWriter outputStream)
+        {
+            var input = inputStream.ReadLine();
             while (!string.IsNullOrEmpty(input))
             {
                 try
@@ -35,7 +41,7 @@ namespace TwitterTracker.Filter
                                     Only pass tweets that use english language: "$.root[?(@.lang=='en')]"
                                     Only pass tweets that use english or spanish language: $.root[?(@.lang=='en' || @.lang=='es')]
                                 */
-                                var val = tweet.SelectTokens(arg); 
+                                var val = tweet.SelectTokens(arg);
 
                                 if (val == null || val.Count() == 0)
                                     fail = true;
@@ -44,15 +50,14 @@ namespace TwitterTracker.Filter
                         }
 
                         if (!fail)
-                            Console.WriteLine(input);
+                            outputStream.WriteLine(input);
                     }
                     else
-                        Console.WriteLine(input);
+                        outputStream.WriteLine(input);
                 }
                 catch { }
-                input = Console.ReadLine();
+                input = inputStream.ReadLine();
             }
-
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,7 +8,7 @@ using TwitterTracker.Core;
 
 namespace TwitterTracker
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
@@ -23,6 +24,11 @@ namespace TwitterTracker
                 }
             }
 
+            Run(args, Console.Out);
+        }
+
+        public static void Run(string[] args, TextWriter stream)
+        {
             //Bypass Cert Validation
             if (args[0].Contains("x"))
             {
@@ -35,9 +41,9 @@ namespace TwitterTracker
             Tracker tracker = null;
 
             if (args.Length == 2)
-                tracker = Tracker.New(args[1], args[0].Contains("v") ? Console.Out : null);
+                tracker = Tracker.New(args[1], args[0].Contains("v") ? stream : null);
             else
-                tracker = Tracker.New(args[0], args[0].Contains("v") ? Console.Out : null);
+                tracker = Tracker.New(args[0], args[0].Contains("v") ? stream : null);
 
             var locker = new object();
 
@@ -47,7 +53,7 @@ namespace TwitterTracker
                 {
                     lock (locker)
                     {
-                        Console.WriteLine(tweet);
+                        stream.WriteLine(tweet);
                     }
                 }
             });
@@ -58,7 +64,7 @@ namespace TwitterTracker
                 {
                     lock (locker)
                     {
-                        Console.WriteLine(tweet);
+                        stream.WriteLine(tweet);
                     }
                 }
             });
