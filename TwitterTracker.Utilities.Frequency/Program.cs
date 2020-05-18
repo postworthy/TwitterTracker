@@ -13,11 +13,23 @@ namespace TwitterTracker.Utilities.Frequency
     {
         static void Main(string[] args)
         {
-            Run(args, Console.In, Console.Out);
+            foreach (var line in Run(args, ConsoleIn()))
+            {
+                Console.WriteLine(line);
+            }
         }
 
-        public static void Run(string[] args, TextReader inputStream, TextWriter outputStream)
+        private static IEnumerable<string> ConsoleIn()
         {
+            while (true)
+            {
+                yield return Console.ReadLine();
+            }
+        }
+
+        public static IEnumerable<string> Run(string[] args, IEnumerable<string> inputs)
+        {
+
             bool console = false;
             int max = 0;
             if (args.Length > 0)
@@ -43,10 +55,10 @@ namespace TwitterTracker.Utilities.Frequency
             var items = new Dictionary<string, FrequencyItem>(max);
             var errors = new List<string>();
 
-            var input = inputStream.ReadLine();
-            var lastOutput = DateTime.MinValue;
-            while (!string.IsNullOrEmpty(input))
+            foreach (var input in inputs)
             {
+                var lastOutput = DateTime.MinValue;
+
                 var split = input.Contains("#retweets=") ?
                     input.Split(new[] { "#retweets=" }, StringSplitOptions.RemoveEmptyEntries).Reverse().ToArray() :
                     input.Split(',');
@@ -74,7 +86,7 @@ namespace TwitterTracker.Utilities.Frequency
                 else if (items.Count >= 25 && (DateTime.Now - lastOutput).TotalSeconds > 60 * 5)
                 {
                     lastOutput = DateTime.Now;
-                    outputStream.WriteLine(
+                    yield return 
                         Convert.ToBase64String(
                             ASCIIEncoding.UTF8.GetBytes(
                                 JsonConvert.SerializeObject(
@@ -86,10 +98,8 @@ namespace TwitterTracker.Utilities.Frequency
                                             .ThenByDescending(x => x.Value.LastSeen)
                                             .Select(x => x.Value)
                                             .ToArray()
-                                    }))));
+                                    })));
                 }
-
-                input = inputStream.ReadLine();
             }
         }
 

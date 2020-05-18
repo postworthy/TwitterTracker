@@ -1,0 +1,3 @@
+#dotnet TwitterTracker\bin\Debug\netcoreapp2.1\TwitterTracker.dll -tx news | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) | ConvertFrom-Json }
+$track="CVE-"
+dotnet TwitterTracker\bin\Debug\netcoreapp2.1\TwitterTracker.dll -tx $track | ForEach-Object { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($_)) | ConvertFrom-Json } | select text

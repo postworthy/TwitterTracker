@@ -12,20 +12,30 @@ namespace TwitterTracker.Filter
     {
         static void Main(string[] args)
         {
-            Run(args, Console.In, Console.Out);
+            foreach (var line in Run(args, ConsoleIn()))
+            {
+                Console.WriteLine(line);
+            }
         }
 
-        public static void Run(string[] args, TextReader inputStream, TextWriter outputStream)
+        private static IEnumerable<string> ConsoleIn()
         {
-            var input = inputStream.ReadLine();
-            while (!string.IsNullOrEmpty(input))
+            while (true)
             {
+                yield return Console.ReadLine();
+            }
+        }
+
+        public static IEnumerable<string> Run(string[] args, IEnumerable<string> inputs)
+        {
+            foreach (var input in inputs)
+            {
+                var fail = false;
                 try
                 {
                     if (args != null && args.Length > 0)
                     {
                         var tweet = JObject.Parse("{root: [" + ASCIIEncoding.UTF8.GetString(Convert.FromBase64String(input)) + "]}");
-                        var fail = false;
                         foreach (var arg in args)
                         {
                             try
@@ -48,15 +58,12 @@ namespace TwitterTracker.Filter
                             }
                             catch { fail = true; }
                         }
-
-                        if (!fail)
-                            outputStream.WriteLine(input);
                     }
-                    else
-                        outputStream.WriteLine(input);
                 }
                 catch { }
-                input = inputStream.ReadLine();
+
+                if (!fail)
+                    yield return input;
             }
         }
     }

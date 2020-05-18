@@ -12,42 +12,58 @@ namespace TwitterTracker.Extract.Urls
     {
         static void Main(string[] args)
         {
-            Run(args, Console.In, Console.Out);
+            foreach(var line in Run(args, ConsoleIn()))
+            {
+                Console.WriteLine(line);
+            }
         }
 
-        public static void Run(string[] args, TextReader inputStream,  TextWriter outputStream)
+        private static IEnumerable<string> ConsoleIn()
         {
-            var input = inputStream.ReadLine();
-            while (!string.IsNullOrEmpty(input))
+            while (true)
             {
+                yield return Console.ReadLine();
+            }
+        }
+        public static IEnumerable<string> Run(string[] args, IEnumerable<string> inputs)
+        {
+            foreach (var input in inputs)
+            {
+                var urls = new List<string>();
+                Status status = null;
                 try
                 {
-                    var status = Status.FromBase64String(input);
-                    var urls = new List<string>();
+                    status = Status.FromBase64String(input);
                     if (status != null && status.entities != null && status.entities.urls != null)
                         urls = status.entities.urls.Select(x => x.expanded_url).ToList();
                     if (status != null && status.entities != null && status.entities.media != null)
                         urls = status.entities.media.Select(x => x.expanded_url).ToList();
-                    if (urls.Count > 0)
-                    {
-                        int retweets = status.retweet_count ?? 0;
-                        var ot = status.retweeted_status;
-                        while (ot != null)
-                        {
-                            if (ot.retweet_count > retweets)
-                                retweets = ot.retweet_count.Value;
-
-                            ot = ot.retweeted_status;
-                        }
-                        retweets = retweets / urls.Count; //Split the RT love between them all
-                        urls.ForEach(x => outputStream.WriteLine(x + "#retweets=" + retweets));
-                    }
                 }
                 catch
                 {
-                    outputStream.WriteLine("Error Handling: " + input);
                 }
-                input = inputStream.ReadLine();
+
+                if (urls.Count > 0 && status != null)
+                {
+                    int retweets = status.retweet_count ?? 0;
+                    var ot = status.retweeted_status;
+                    while (ot != null)
+                    {
+                        if (ot.retweet_count > retweets)
+                            retweets = ot.retweet_count.Value;
+
+                        ot = ot.retweeted_status;
+                    }
+                    retweets = retweets / urls.Count; //Split the RT love between them all
+                    foreach (var x in urls)
+                    {
+                        yield return x + "#retweets=" + retweets;
+                    }
+                }
+                else
+                {
+                    yield return "Error Handling: " + input;
+                }
             }
         }
     }

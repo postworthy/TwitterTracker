@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,10 +25,13 @@ namespace TwitterTracker
                 }
             }
 
-            Run(args, Console.Out);
+            foreach(var line in Run(args))
+            {
+                Console.WriteLine(line);
+            }
         }
 
-        public static void Run(string[] args, TextWriter stream)
+        public static IEnumerable<string> Run(string[] args)
         {
             //Bypass Cert Validation
             if (args[0].Contains("x"))
@@ -41,20 +45,17 @@ namespace TwitterTracker
             Tracker tracker = null;
 
             if (args.Length == 2)
-                tracker = Tracker.New(args[1], args[0].Contains("v") ? stream : null);
+                tracker = Tracker.New(args[1], args[0].Contains("v") ? Console.Out : null);
             else
-                tracker = Tracker.New(args[0], args[0].Contains("v") ? stream : null);
+                tracker = Tracker.New(args[0], args[0].Contains("v") ? Console.Out : null);
 
-            var locker = new object();
+            var tweets = new ConcurrentBag<string>();
 
             var t = new Action(() =>
             {
                 foreach (var tweet in tracker.ResultStream(Tracker.StreamTypes.Tracker))
                 {
-                    lock (locker)
-                    {
-                        stream.WriteLine(tweet);
-                    }
+                    tweets.Add(tweet.ToString());
                 }
             });
 
@@ -62,24 +63,31 @@ namespace TwitterTracker
             {
                 foreach (var tweet in tracker.ResultStream(Tracker.StreamTypes.User))
                 {
-                    lock (locker)
-                    {
-                        stream.WriteLine(tweet);
-                    }
+                    tweets.Add(tweet.ToString());
                 }
             });
+
+            var tasks = new Task[] { };
 
             //Multithreaded only if we need it.
             if (args[0].Contains("t") && args[0].Contains("u"))
             {
                 var actions = new List<Action>() { t, u };
-                var tasks = actions.Select(x => Task.Run(x)).ToArray();
-                Task.WaitAll(tasks);
+                tasks = actions.Select(x => Task.Run(x)).ToArray();
+                //Task.WaitAll(tasks);
             }
             else if (args[0].Contains("t"))
-                t();
+                tasks = new[] { Task.Run(t) };
             else if (args[0].Contains("u"))
-                u();
+                tasks = new[] { Task.Run(u) };
+
+            while (true)
+            {
+                while (tweets.TryTake(out var tweet))
+                {
+                    yield return tweet;
+                }
+            }
         }
     }
 }
