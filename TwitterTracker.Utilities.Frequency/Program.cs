@@ -63,7 +63,7 @@ namespace TwitterTracker.Utilities.Frequency
                     input.Split(new[] { "#retweets=" }, StringSplitOptions.RemoveEmptyEntries).Reverse().ToArray() :
                     input.Split(',');
                 var count = 0;
-                var item = split[1];
+                var item = split.Length == 2 ? split[1] : "";
                 var isItem = int.TryParse(split[0], out count) && item.StartsWith("http");
                 if (isItem)
                 {
@@ -125,7 +125,7 @@ namespace TwitterTracker.Utilities.Frequency
             Console.WriteLine("");
             foreach (var e in errors)
             {
-                Console.WriteLine("Error Handling: {0}", e);
+                //Console.WriteLine("Error Handling: {0}", e);
             }
             if (Console.IsOutputRedirected)
                 Console.WriteLine("----------");
