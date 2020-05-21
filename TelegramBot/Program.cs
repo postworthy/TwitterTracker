@@ -99,23 +99,24 @@ namespace TelegramBot
 
                     items.Add(item, new FrequencyItem() { Value = item, Count = Math.Max(count, 1), LastSeen = DateTime.Now });
                 }
-            }
 
 
-            if (items.Count >= min)
-            {
-                var newTop = items.OrderByDescending(x => x.Value.Rank()).FirstOrDefault();
 
-                if (newTop.Key != topItem.Key)
+                if (items.Count >= min)
                 {
-                    topItem = newTop;
-                    return topItem.Value;
+                    var newTop = items.OrderByDescending(x => x.Value.Rank()).FirstOrDefault();
+
+                    if (newTop.Key != topItem.Key)
+                    {
+                        topItem = newTop;
+                        return topItem.Value;
+                    }
+                    else
+                        return null;
                 }
                 else
-                    return null;
+                    Console.WriteLine($"Threshold: {items.Count} < {min}");
             }
-            else
-                Console.WriteLine($"Threshold: {items.Count} < {min}");
 
             return null;
         }
